@@ -3,11 +3,14 @@ import Image from "next/image";
 import Link from 'next/link'
 import {useState, useEffect} from "react";
 import {getWallets, createWallet} from "@/utils/wallets";
+import {getToken, getUserWallets} from "@/utils/challenge";
 
 export default function Home() {
   const [wallets, setWallets]: any[] = useState([]);
   const [balances, setBalances]:any[] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const defaultId = '1565e164-d764-4691-a2d4-179e92261970';
 
   async function getWallet() {
     setIsLoading(true);
@@ -21,7 +24,21 @@ export default function Home() {
     setIsLoading(false);
   }
 
-  useEffect(()=>{getWallet()}, []);
+  async function fetchUserWallets(){
+    try{
+      const {encryptionKey, userToken} = await getToken(defaultId);
+      console.log("Token:", userToken);
+      const userWallets = await getUserWallets(userToken);
+      console.log("User Controlled Wallets:", userWallets);
+    }catch(e){
+      console.log(e);
+    }
+  }
+
+  useEffect(()=>{
+    getWallet()
+    fetchUserWallets();
+  }, []);
 
   const create= async ()=>{
     console.log("Creating New Wallet");
