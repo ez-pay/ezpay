@@ -4,7 +4,7 @@ import React, { useState } from "react";
 // Mock data for wallets
 const wallets = [
   { id: 1, address: "0x0738212345", balance: "3,469.52 USDC" },
-  { id: 2, address: "0x0829374456", balance: "2,000.00 USDC" },
+  { id: 2, address: "0x0829374456", balance: "2,001.00 USDC" },
   { id: 3, address: "0x0935485767", balance: "5,120.30 USDC" },
 ];
 
