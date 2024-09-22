@@ -57,3 +57,43 @@ export async function initializeWallet(userToken:string, blockchain:string){
         console.error(e);
     }
 }
+
+/** Fetch all the wallets of the user */
+export async function getUserWallets(userToken:string){
+    try{
+        const response = await fetch('/api/challenge/wallets', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({userToken}),
+        });
+        if (!response.ok){
+            throw new Error(`Error: ${response.status}`);
+        }
+        const data:any = await response.json();
+        return data.wallets;
+    }catch(e){
+        console.error(e);
+    }
+}
+
+/** Fetch an individual wallet */
+export async function getIndividualUserWallet(id:string){
+    try{
+        const response = await fetch('/api/challenge/user', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({userId: id}),
+        });
+        if (!response.ok){
+            throw new Error(`Error: ${response.status}`);
+        }
+        const data:any = await response.json();
+        return data.user;
+    }catch(e){
+        console.error(e);
+    }
+}

@@ -9,9 +9,6 @@ interface ContractDeployProps{
     id: string;
 }
 
-const tes: DeployContractInput = {}
-
-
 async function generateCipher(){
     if(!apiKey || !entitySecret){
         throw new Error('Circle Connection Configuration Error');
@@ -20,6 +17,7 @@ async function generateCipher(){
         apiKey,
         entitySecret,
     });
+
     const response:any = await circleDeveloperSdk.getPublicKey();  
     const key = response.data.publicKey;
 

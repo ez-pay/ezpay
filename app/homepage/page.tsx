@@ -88,7 +88,7 @@ export default function HomePage() {
 
         <div
           className="bg-white p-4 rounded-xl shadow-md flex flex-col items-center"
-          onClick={() => (window.location.href = "/makepayment")}
+          onClick={() => (window.location.href = "/payment")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
