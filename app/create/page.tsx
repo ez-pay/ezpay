@@ -114,7 +114,7 @@ export default function Create(){
    
    
     return(<>
-        <div>Hello Motherfucker</div>
-        <button onClick={initializeNewUser}>Fuck You</button>
+        <div className="flex justify-center items-center h-screen">
+        <button className="bg-blue-600 text-white font-semibold p-4" onClick={initializeNewUser}>Create User</button></div>
     </>)
 }

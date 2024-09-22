@@ -1,101 +1,127 @@
 "use client";
-import Image from "next/image";
-import Link from 'next/link'
-import {useState, useEffect} from "react";
-import {getWallets, createWallet} from "@/utils/wallets";
-import {getToken, getUserWallets} from "@/utils/challenge";
+import { W3SSdk } from '@circle-fin/w3s-pw-web-sdk'
+import { useCallback, useEffect, useState } from 'react'
+import { v4 as uuidv4 } from 'uuid';
+import {getToken, createUser, initializeWallet} from "@/utils/challenge";
 
-export default function Home() {
-  const [wallets, setWallets]: any[] = useState([]);
-  const [balances, setBalances]: any[] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+const appId = process.env.NEXT_PUBLIC_APP_ID;
 
-  const defaultId = '1565e164-d764-4691-a2d4-179e92261970';
+export default function Home(){
+    const [sdk, setSdk]= useState<any>(null);
+    const [loadingSdk, setLoadingSdk] = useState(true);
+    const [processing, setProcessing] = useState(false);
+    const [successful, setSuccessful] = useState(false);
+  
+    useEffect(() => {
+        console.log("App ID:", appId);
+        setLoadingSdk(true);
+        const newSdk = new W3SSdk();
+        setSdk(newSdk);
+        setLoadingSdk(false);
+    }, [])
 
-  async function getWallet() {
-    setIsLoading(true);
-    try {
-      const wallets = await getWallets();
-      setWallets(wallets);
-      console.log(wallets);
-    } catch (e) {
-      console.log(e);
-    }
-    setIsLoading(false);
-  }
+    const initializeNewUser = async()=>{
+        setProcessing(true); 
+        if(!sdk){throw Error("SDK is not initialized")};
+        try{
+            const uuid = "d64b05fb-2b92-5441-9a83-cc91a42e821f"  
+            //const uuid:string = uuidv4();
+            console.log("Creating User with ID:", uuid);
+            const res = await createUser(uuid);
+            const {userToken, encryptionKey} = await getToken(uuid);
+            const {challengeId} = await initializeWallet(userToken, 'ETH-SEPOLIA');
+            // console.log(res);
+            // console.log("App ID:", appId);
+            // console.log("User Token:", userToken);
+            // console.log("Encryption Key:", encryptionKey);
+            // console.log("Challenge ID:", challengeId);
 
-  async function fetchUserWallets(){
-    try{
-      const {encryptionKey, userToken} = await getToken(defaultId);
-      console.log("Token:", userToken);
-      const userWallets = await getUserWallets(userToken);
-      console.log("User Controlled Wallets:", userWallets);
-    }catch(e){
-      console.log(e);
-    }
-  }
-
-  useEffect(()=>{
-    getWallet()
-    fetchUserWallets();
-  }, []);
-
-  const create = async () => {
-    console.log("Creating New Wallet");
-    const res = await createWallet(
-      "16536b99-6421-5d25-b7be-ed4cebf706f8",
-      ["ETH-SEPOLIA"],
-      "SCA"
-    );
-    console.log("Result:", res);
-  };
-
-  return (
-    <>
-      <div className="grid items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-        <button onClick={create}>Create Wallet</button>
-        <div>Hello Motherfucker</div>
-
-        {isLoading ? (
-          <div>Loading</div>
-        ) : wallets.length > 0 ? (
-          <>
-            <div>Length: {wallets.length}</div>
-            {wallets.map((item: any, key: number) => (
-              <div key={key}>
-                <Link href={`/wallet/${item.id}`}>
-                  <div>Wallet Circle ID: {item.id}</div>
-                  <div>Wallet Address: {item.address}</div>
-                  <div>Blockchain: {item.blockchain}</div>
-                  <div>Wallet State: {item.state}</div>
-                  <div>Wallet Set ID: {item.walletSetId}</div>
-                  <div>Custody Type: {item.custodyType}</div>
-                  <div>Account Type: {item.accountType}</div>
-                  <div>Last update Date: {item.updateDate}</div>
-                  <div>Create Date: {item.createDate}</div>
-                  {item.name ? (
-                    <>
-                      <div>.</div>
-                      <div className="text-red-400">
-                        Wallet Name:{item.name}
-                      </div>
-                      <div className="text-red-400">
-                        Wallet Ref Id: {item.refId}
-                      </div>
-                      <div>.</div>
-                    </>
-                  ) : (
-                    ""
-                  )}
-                  {/*<div>{JSON.stringify(item)}</div>*/}
-                </Link>
-              </div>
-            ))}
-          </>
-        ) : (
-          <div>No Wallet Detected: {wallets.length}</div>
-        )}
-      </div>
-    </>
-  );
+            sdk.setAppSettings({
+                appId,
+              })
+            sdk.setAuthentication({
+                userToken,
+                encryptionKey,
+            })
+          
+            //Optional Code
+            sdk.setLocalizations({
+                common: {
+                  continue: 'Next',
+                },
+                securityIntros: {
+                  headline:
+                    'Set up your {{method}} to recover your pin code if you forget it',
+                  headline2: 'Security Question',
+                },
+             })
+          
+            sdk.setThemeColor({
+                backdrop: '#f0f0f0',
+                backdropOpacity: 0.5,
+                textMain: '#2403fc'
+            })
+          
+            sdk.setResources({
+                naviClose:
+                  'https://static.vecteezy.com/system/resources/previews/018/887/462/non_2x/signs-close-icon-png.png',
+                securityIntroMain:
+                    'https://img.freepik.com/premium-vector/cyber-security-illustration-concept-with-characters_269730-111.jpg'
+                //'https://media-cldnry.s-nbcnews.com/image/upload/t_fit-560w,f_auto,q_auto:best/rockcms/2022-01/210602-doge-meme-nft-mb-1715-8afb7e.jpg',
+                // fontFamily: {
+                //   name: 'Edu TAS Beginner',
+                //   url: 'https://fonts.googleapis.com/css2?family=Edu+TAS+Beginner:wght@400;500;600;700&display=swap',
+                // },
+            })
+          
+            sdk.setCustomSecurityQuestions(
+                [
+                  {
+                    question: 'What is your favorite color?',
+                    type: 'TEXT',
+                  },
+                  {
+                    question: 'What is your favorite food?',
+                    type: 'TEXT',
+                  },
+                  {
+                    question: 'When is your birthday?',
+                    type: 'DATE',
+                  },
+                ],
+                1
+            );
+            //Optional Code Ends Here
+          
+            sdk.execute(challengeId, (error, result) => {
+                if (error) {
+                  console.log(
+                    `${error?.code?.toString() || 'Unknown code'}: ${
+                      error?.message ?? 'Error!'
+                    }`
+                  )
+          
+                  return
+                }
+          
+                console.log(`Challenge: ${result.type}`)
+                console.log(`status: ${result.status}`)
+          
+                if (result.data) {
+                  console.log(`signature: ${result.data?.signature}`)
+                  setSuccessful(true);
+                }
+            })
+        }catch(e){
+            console.log("Error:", e);
+        }
+        setProcessing(false);
+    };
+   
+   
+    return(<>
+        <div className="flex flex-col justify-center items-center h-screen">
+        <button className="bg-blue-600 hover:bg-blue-500 text-white font-semibold p-4" onClick={successful? () => window.location.href = "/homepage" : ()=>{initializeNewUser()}}>{successful? "Open Dashboard" :"Create User"}</button>
+        </div>
+    </>)
 }

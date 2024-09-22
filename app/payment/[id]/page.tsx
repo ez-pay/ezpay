@@ -6,6 +6,8 @@ import {useState} from "react";
 import SuccessPage from '@/components/PaymentSuccess';
 
 import {callContract} from '@/utils/transaction';
+import {getToken, callContractChallenge} from '@/utils/challenge';
+import { W3SSdk } from '@circle-fin/w3s-pw-web-sdk'
 
 interface PaymentProps{
     params: { id: string }
@@ -20,30 +22,100 @@ export default function ConfirmationPayment({params: {id}}: PaymentProps) {
     };
 
     const initiateContractCall = async ()=>{
+        console.log("Calling Contract")
         const contractAddress = '0xAc3716c5FE3a5eF3e0Cc0bC8f749905533c73c5d';
         const abiFunctionSignature = 'fulfillPayment(bytes32)';
         //const abiParameters = ['0x7cd3ceedfbec2accc2bcc8cd9f88078e05984f7133711ca156eada8ea9ff2159'];
         const abiParameters = [id];
         const walletId = 'd64b05fb-2b92-5441-9a83-cc91a42e821f';
-        const res = await callContract(walletId, contractAddress, abiFunctionSignature, abiParameters);
-        console.log(res);
+        
+        if(walletType === "user"){
+            console.log("Initiating User Challenge");
+            const {userToken, encryptionKey} = await getToken('1565e164-d764-4691-a2d4-179e92261970');
+            const {challengeId} = await callContractChallenge(userToken, "1565e164-d764-4691-a2d4-179e92261970", contractAddress, abiFunctionSignature, abiParameters);
+            console.log("Initiating User Wallet Challenge");
+            console.log("User Token:", userToken);
+            console.log("Encryption Key:", encryptionKey);
+            console.log("Challenge Id:", challengeId);
+            const sdk = new W3SSdk();
+            sdk.setAppSettings({
+                appId: 'd64b05fb-2b92-5441-9a83-cc91a42e821f',
+            })
+            sdk.execute(challengeId, (error, result) => {
+                if (error) {
+                  console.log(
+                    `${error?.code?.toString() || 'Unknown code'}: ${
+                      error?.message ?? 'Error!'
+                    }`
+                  )
+          
+                  return
+                }
+          
+                console.log(`Challenge: ${result.type}`)
+                console.log(`status: ${result.status}`)
+          
+                if (result.data) {
+                  console.log(`signature: ${result.data?.signature}`)
+                  setCompleted(true);
+                }
+            })
+        }else{
+            const res = await callContract(walletId, contractAddress, abiFunctionSignature, abiParameters);
+            console.log(res);
+        }
     }
     const addAllowance = async ()=>{
+        console.log("Adding Allowance");
         const amount = '1000000'
         const tokenAddress = '0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238';
         const contractAddress = '0xAc3716c5FE3a5eF3e0Cc0bC8f749905533c73c5d';
         const abiFunctionSignature = 'approve(address, uint256)';
         const abiParameters = [contractAddress, amount];
         const walletId = 'd64b05fb-2b92-5441-9a83-cc91a42e821f';
-        
-        const res = await callContract(walletId, tokenAddress, abiFunctionSignature, abiParameters);
-        console.log(res);
+
+        if(walletType == "user"){
+            console.log("Calling Using User Wallet")
+            const {userToken, encryptionKey} = await getToken('1565e164-d764-4691-a2d4-179e92261970');
+            const {challengeId} = await callContractChallenge(userToken, "1565e164-d764-4691-a2d4-179e92261970", tokenAddress, abiFunctionSignature, abiParameters);
+            console.log("Initiating User Wallet Challenge");
+            console.log("User Token:", userToken);
+            console.log("Encryption Key:", encryptionKey);
+            console.log("Challenge Id:", challengeId);
+            
+            const sdk = new W3SSdk();
+            sdk.setAppSettings({
+                appId: 'd64b05fb-2b92-5441-9a83-cc91a42e821f',
+            })
+            sdk.execute(challengeId, (error, result) => {
+                if (error) {
+                  console.log(
+                    `${error?.code?.toString() || 'Unknown code'}: ${
+                      error?.message ?? 'Error!'
+                    }`
+                  )
+          
+                  return
+                }
+          
+                console.log(`Challenge: ${result.type}`)
+                console.log(`status: ${result.status}`)
+          
+                if (result.data) {
+                  console.log(`signature: ${result.data?.signature}`)
+                  setCompleted(true);
+                }
+            })
+        }else{
+            const res = await callContract(walletId, tokenAddress, abiFunctionSignature, abiParameters);
+            console.log(res);
+        }
     }
 
     const confirmTransaction = async ()=>{
         try{
-            await initiateContractCall();
             await addAllowance();
+            await initiateContractCall();
         }catch(e){
             console.error(e);
         }
@@ -92,8 +164,8 @@ export default function ConfirmationPayment({params: {id}}: PaymentProps) {
             <option value="" disabled>
               Choose Wallet
             </option>
-            <option value="user">User Wallet</option>
-            <option value="developer">EZ-Pay Wallet</option>
+            <option value="user">User Wallet (0x897083eaaeae3abd21a6826bd30c2b79c882412f)</option>
+            <option value="developer">EZ-Pay Wallet (0x09842d729e09a7cd1bcdbca22c1310c8cf0503fc)</option>
           </select>
         </div>
   

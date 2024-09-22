@@ -97,3 +97,23 @@ export async function getIndividualUserWallet(id:string){
         console.error(e);
     }
 }
+
+/** Fetch the challenge to call a smart contract */
+export async function callContractChallenge(userToken:string, walletId:string, contractAddress:string, abiFunctionSignature:string, abiParameters:any){
+    try{
+        const response = await fetch('/api/challenge/contract', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({userToken, walletId, contractAddress, abiFunctionSignature, abiParameters}),
+        });
+        if (!response.ok){
+            throw new Error(`Error: ${response.status}`);
+        }
+        const data:any = await response.json();
+        return data;
+    }catch(e){
+        console.error(e);
+    }
+}

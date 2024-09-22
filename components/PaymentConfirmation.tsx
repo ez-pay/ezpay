@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import SubmitButton from '@/components/ui/SubmitButton';
-import {callContract} from "@/utils/transaction";
+import {callContractChallenge} from "@/utils/transaction";
 
 export default function PaymentConfirmation(){
     const paymentData ={
