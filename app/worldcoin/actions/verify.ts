@@ -17,8 +17,16 @@ export type IDKitResponse = {
   verification_level: VerificationLevel;
 };
 
-const app_id = process.env.NEXT_PUBLIC_WLD_APP_ID as 'app_${string}';
-const action = process.env.NEXT_PUBLIC_WLD_ACTION as string;
+// Check if environment variables are set
+const app_id = process.env.NEXT_PUBLIC_WLD_APP as 'app_$string';
+const action = process.env.NEXT_PUBLIC_WLD_ACTIO as string;
+
+if (!app_id || !action) {
+  console.error("Missing app_id or action in environment variables");
+}
+
+console.log("App ID:", app_id);
+console.log("Action:", action);
 
 export async function logVerification(
   address: string,

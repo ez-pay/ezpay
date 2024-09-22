@@ -11,11 +11,11 @@ export default function Home() {
   const [verificationResult, setVerificationResult] = useState<string | null>(null);
   const router = useRouter();
 
-  const app_id = process.env.NEXT_PUBLIC_WLD_APP_ID as 'app_${string}';
-  const action = process.env.NEXT_PUBLIC_WLD_ACTION;
+  const app_id = process.env.NEXT_PUBLIC_WLD_APP as 'app_${string}';
+  const action = process.env.NEXT_PUBLIC_WLD_ACTIO;
  
-//   if (!app_id) throw new Error("app_id is not set in environment variables!");
-//   if (!action) throw new Error("action is not set in environment variables!");
+  if (!app_id) throw new Error("app_id is not set in environment variables!");
+  if (!action) throw new Error("action is not set in environment variables!");
 
   // Automatically get the wallet address on component mount
   useEffect(() => {
@@ -71,7 +71,7 @@ export default function Home() {
       <div>
         <IDKitWidget
           app_id={app_id}
-          action="verification"
+          action={action}
           onSuccess={handleVerify}
           handleVerify={handleVerify}
           verification_level={VerificationLevel.Orb}
